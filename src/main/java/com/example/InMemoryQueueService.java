@@ -9,11 +9,14 @@ import java.util.concurrent.TimeUnit;
 
 public class InMemoryQueueService implements QueueService {
   private final Map<String, Queue<Message>> queues;
+  private final Map<String,Queue<PriorityMessage>> priorityQueues;
+  
 
   private long visibilityTimeout;
 
   InMemoryQueueService() {
     this.queues = new ConcurrentHashMap<>();
+    this.priorityQueues = new ConcurrentHashMap<>();
     String propFileName = "config.properties";
     Properties confInfo = new Properties();
 
@@ -28,23 +31,45 @@ public class InMemoryQueueService implements QueueService {
 
   @Override
   public void push(String queueUrl, String msgBody) {
-    Queue<Message> queue = queues.get(queueUrl);
-    if (queue == null) {
-      queue = new ConcurrentLinkedQueue<>();
-      queues.put(queueUrl, queue);
-    }
-    queue.add(new Message(msgBody));
+//    Queue<Message> queue = queues.get(queueUrl);
+//    if (queue == null) {
+//      queue = new ConcurrentLinkedQueue<>();
+//      queues.put(queueUrl, queue);
+//    }
+//    queue.add(new Message(msgBody));
+	  
+	  push(queueUrl, msgBody,0) ; //0 for default
+  }
+  
+  public void push(String queueUrl, String msgBody, int priority) {
+	  Queue<Message> queue = queues.get(queueUrl);
+	  Queue<PriorityMessage> priorityQueue = priorityQueues.get(queueUrl);
+	  
+	  if(queue==null) {
+		  queue = new ConcurrentLinkedQueue<>();
+          queues.put(queueUrl, queue);
+	  }
+	  
+	  if (priorityQueue == null) {
+          priorityQueue = new PriorityQueue<>(Comparator.comparingInt(PriorityMessage::getPriority).reversed());
+          priorityQueues.put(queueUrl, priorityQueue);
+      }
+	  
+	  PriorityMessage priorityMessage = new PriorityMessage(msgBody, priority);
+	  queue.add(priorityMessage); // Add to standard queue
+	  priorityQueue.add(priorityMessage); // Add to priority queue
+
   }
 
   @Override
   public Message pull(String queueUrl) {
-    Queue<Message> queue = queues.get(queueUrl);
-    if (queue == null) {
-      return null;
+    Queue<PriorityMessage> priorityQueue  = priorityQueues.get(queueUrl);
+    if (priorityQueue == null || priorityQueue.isEmpty()) {
+        return null;
     }
-
+    
     long nowTime = now();
-    Optional<Message> msgOpt = queue.stream().filter(m -> m.isVisibleAt(nowTime)).findFirst();
+    Optional<PriorityMessage> msgOpt = priorityQueue.stream().filter(m -> m.isVisibleAt(nowTime)).findFirst();
     if (msgOpt.isEmpty()) {
       return null;
     } else {
