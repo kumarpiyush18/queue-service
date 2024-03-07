@@ -41,7 +41,8 @@ public class InMemoryQueueService implements QueueService {
 	  push(queueUrl, msgBody,0) ; //0 for default
   }
   
-  public void push(String queueUrl, String msgBody, int priority) {
+  
+  public void push(String queueUrl, String msgBody, int priority) { // overloading
 	  Queue<Message> queue = queues.get(queueUrl);
 	  Queue<PriorityMessage> priorityQueue = priorityQueues.get(queueUrl);
 	  
@@ -67,6 +68,7 @@ public class InMemoryQueueService implements QueueService {
     if (priorityQueue == null || priorityQueue.isEmpty()) {
         return null;
     }
+    
     
     long nowTime = now();
     Optional<PriorityMessage> msgOpt = priorityQueue.stream().filter(m -> m.isVisibleAt(nowTime)).findFirst();

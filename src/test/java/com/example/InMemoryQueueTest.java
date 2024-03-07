@@ -17,14 +17,30 @@ public class InMemoryQueueTest {
 		qs = new InMemoryQueueService();
 	}
 	
-	
+	// updated below code to test our priority queue implementation
 	@Test
 	public void testSendMessage(){
 		qs.push(queueUrl, "Good message!");
 		Message msg = qs.pull(queueUrl);
+		
+		((InMemoryQueueService) qs).push(queueUrl, "Low priority message", 1);  
+        ((InMemoryQueueService) qs).push(queueUrl, "High priority message", 10);
+        ((InMemoryQueueService) qs).push(queueUrl, "Medium priority message", 5);
 
 		assertNotNull(msg);
 		assertEquals("Good message!", msg.getBody());
+		
+		Message msg1 = qs.pull(queueUrl);
+        assertNotNull(msg1);
+        assertEquals("High priority message", msg1.getBody());
+        
+        Message msg2 = qs.pull(queueUrl);
+        assertNotNull(msg2);
+        assertEquals("Medium priority message", msg2.getBody());
+        
+        Message msg3 = qs.pull(queueUrl);
+        assertNotNull(msg3);
+        assertEquals("Low priority message", msg3.getBody());
 	}
 	
 	@Test

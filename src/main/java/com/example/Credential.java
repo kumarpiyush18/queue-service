@@ -27,6 +27,7 @@ public class Credential {
 	            e.printStackTrace();
 	          }
 	        
+	        
 	        this.authToken=confInfo.getProperty("authToken");
 	        this.baseUrl=confInfo.getProperty("baseUrl");
 	 }

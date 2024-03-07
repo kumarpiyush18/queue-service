@@ -36,6 +36,7 @@ public class UpstashQueueService {
         }
     }
 
+    
     public String pull(String queueName) {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()

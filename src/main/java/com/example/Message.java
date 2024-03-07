@@ -16,7 +16,7 @@ public class Message {
     this.msgBody = msgBody;
   }
 
-  Message(String msgBody, String receiptId) {
+  Message(String msgBody, String receiptId) { 
     this.msgBody = msgBody;
     this.receiptId = receiptId;
   }
